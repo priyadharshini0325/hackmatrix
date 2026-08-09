@@ -29,6 +29,6 @@ here goes my demo video:
 I have attached the demo video file.
 
 Based on the medicare+ project, the implementation from the scratch also been mentioned in ppt.
-[ppt] : 
+[ppt] : [https://github.com/priyadharshini0325/hackmatrix/blob/main/HACK%20MATRIX%20ppt.pdf]
 
 
