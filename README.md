@@ -25,6 +25,10 @@ Key Features
 🗣️ Voice-Assisted Reminders: Audio-guided alerts to ensure patients never miss a scheduled medication time.
 
 here goes my demo video:
-[demo video] : 
+[demo video] : [https://github.com/priyadharshini0325/hackmatrix/blob/main/demo%20video%20hackmatrxi.mp4]
+I have attached the demo video file.
+
+Based on the medicare+ project, the implementation from the scratch also been mentioned in ppt.
+[ppt] : 
 
 
