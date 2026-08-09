@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediCare+ | Caregiver Alerts</title>
+  <style>
+    :root {
+      --primary: #10b981;
+      --primary-dark: #059669;
+      --danger: #ef4444;
+      --bg-slate: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: var(--bg-slate); color: var(--text-main); display: flex; min-height: 100vh; }
+
+    aside { width: 260px; background-color: #0f172a; color: white; padding: 1.5rem 1rem; display: flex; flex-direction: column; gap: 1.5rem; flex-shrink: 0; }
+    aside .brand { font-size: 1.5rem; font-weight: bold; color: var(--primary); }
+    aside nav ul { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+    aside nav a { color: #94a3b8; text-decoration: none; padding: 0.75rem 1rem; border-radius: 0.5rem; display: block; transition: all 0.2s ease; }
+    aside nav a:hover, aside nav a.active { background-color: #1e293b; color: white; font-weight: 600; }
+
+    main { flex: 1; padding: 2rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.5rem; }
+    .header { margin-bottom: 0.5rem; }
+    .card { background-color: var(--card-bg); border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid var(--border); }
+    
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 0.4rem; font-size: 0.9rem; color: var(--text-main); }
+    .form-control { width: 100%; padding: 0.65rem 0.8rem; border: 1px solid var(--border); border-radius: 0.375rem; font-size: 0.95rem; outline: none; }
+    .form-control:focus { border-color: var(--primary); }
+
+    .checkbox-group { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.5rem; }
+    .checkbox-item { display: flex; align-items: center; gap: 0.6rem; font-size: 0.95rem; cursor: pointer; }
+    .checkbox-item input { width: 16px; height: 16px; accent-color: var(--primary); }
+
+    .btn { background-color: var(--primary); color: white; border: none; padding: 0.65rem 1.2rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer; font-size: 0.95rem; transition: background-color 0.2s ease; }
+    .btn:hover { background-color: var(--primary-dark); }
+    .btn-danger { background-color: var(--danger); }
+    .btn-danger:hover { background-color: #dc2626; }
+    .btn-outline { background-color: transparent; color: var(--text-main); border: 1px solid var(--border); }
+    .btn-outline:hover { background-color: #f1f5f9; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; text-align: left; }
+    th, td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); }
+    th { background-color: #f8fafc; color: var(--text-muted); font-weight: 600; }
+    .badge { padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 600; display: inline-block; }
+    .badge-sent { background-color: #d1fae5; color: #065f46; }
+    .badge-alert { background-color: #fee2e2; color: #991b1b; }
+  </style>
+</head>
+<body>
+
+  <aside>
+    <div class="brand">💚 MediCare+</div>
+    <nav>
+      <ul>
+        <li><a href="index.html">Dashboard</a></li>
+        <li><a href="reminders.html">Reminders</a></li>
+        <li><a href="ocr.html">OCR Scanner</a></li>
+        <li><a href="chatbot.html">AI Assistant</a></li>
+        <li><a href="caregiver.html" class="active">Caregiver Alerts</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="header">
+      <h1>Caregiver Settings & Emergency Alerts</h1>
+      <p style="color: var(--text-muted);">Manage caregiver contact details, automated triggers, and emergency notification logs.</p>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2 style="font-size: 1.15rem; margin-bottom: 1rem;">Caregiver Profile</h2>
+        <form id="caregiverForm">
+          <div class="form-group">
+            <label for="cgName">Caregiver Name</label>
+            <input type="text" id="cgName" class="form-control" placeholder="Enter caregiver's full name..." required />
+          </div>
+
+          <div class="form-group">
+            <label for="cgRelation">Relationship</label>
+            <select id="cgRelation" class="form-control">
+              <option value="">Select relationship...</option>
+              <option value="Daughter/Son">Daughter / Son</option>
+              <option value="Spouse">Spouse</option>
+              <option value="Parent">Parent</option>
+              <option value="Nurse/Nurse Practitioner">Nurse / Practitioner</option>
+              <option value="Friend/Neighbor">Friend / Neighbor</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="cgEmail">Email Address</label>
+            <input type="email" id="cgEmail" class="form-control" placeholder="e.g., caregiver@example.com" required />
+          </div>
+
+          <div class="form-group">
+            <label for="cgPhone">Mobile / Phone Number</label>
+            <input type="tel" id="cgPhone" class="form-control" placeholder="e.g., +1 234 567 890" required />
+          </div>
+
+          <button type="submit" class="btn">Save Contact Details</button>
+        </form>
+      </div>
+
+      <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <h2 style="font-size: 1.15rem; margin-bottom: 1rem;">Automated Notification Rules</h2>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Choose when automated notifications should be sent to your caregiver:</p>
+          
+          <div class="checkbox-group">
+            <label class="checkbox-item">
+              <input type="checkbox" id="triggerMissed" checked />
+              <span>Notify caregiver when a medication dose is missed by 30+ minutes</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" id="triggerLowStock" checked />
+              <span>Send alert when pill inventory drops below 5 doses</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" id="triggerWeekly" />
+              <span>Send weekly adherence and status reports</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" id="triggerEmergency" checked />
+              <span>Enable Emergency SOS button notifications</span>
+            </label>
+          </div>
+        </div>
+
+        <div style="margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+          <h3 style="font-size: 0.95rem; margin-bottom: 0.75rem;">Quick Actions</h3>
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button id="sendTestBtn" type="button" class="btn btn-outline">Send Test Alert</button>
+            <button id="sosBtn" type="button" class="btn btn-danger">🚨 Trigger Emergency SOS</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2 style="font-size: 1.15rem;">Alert Log & History</h2>
+        <button id="clearLogBtn" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">Clear Log</button>
+      </div>
+      
+      <table id="alertLogTable">
+        <thead>
+          <tr>
+            <th>Date & Time</th>
+            <th>Alert Type</th>
+            <th>Recipient</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="logBody">
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script>
+    const form = document.getElementById("caregiverForm");
+    const cgNameInput = document.getElementById("cgName");
+    const cgRelationInput = document.getElementById("cgRelation");
+    const cgEmailInput = document.getElementById("cgEmail");
+    const cgPhoneInput = document.getElementById("cgPhone");
+    
+    const sendTestBtn = document.getElementById("sendTestBtn");
+    const sosBtn = document.getElementById("sosBtn");
+    const clearLogBtn = document.getElementById("clearLogBtn");
+    const logBody = document.getElementById("logBody");
+
+    function loadCaregiverInfo() {
+      const savedInfo = JSON.parse(localStorage.getItem("medicare_caregiver_info"));
+      if (savedInfo) {
+        cgNameInput.value = savedInfo.name || "";
+        cgRelationInput.value = savedInfo.relation || "";
+        cgEmailInput.value = savedInfo.email || "";
+        cgPhoneInput.value = savedInfo.phone || "";
+      }
+    }
+
+    let alertLogs = JSON.parse(localStorage.getItem("caregiver_logs")) || [
+      { time: "Today, 08:30 AM", type: "Missed Dose Notification", recipient: "Caregiver Contact", status: "Sent", isEmergency: false },
+      { time: "Yesterday, 09:00 PM", type: "Low Inventory Warning", recipient: "Caregiver Email", status: "Delivered", isEmergency: false }
+    ];
+
+    function renderLogs() {
+      logBody.innerHTML = "";
+      if (alertLogs.length === 0) {
+        logBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: var(--text-muted);">No alert logs recorded yet.</td></tr>`;
+        return;
+      }
+
+      alertLogs.forEach(log => {
+        const row = document.createElement("tr");
+        const badgeClass = log.isEmergency ? "badge-alert" : "badge-sent";
+        row.innerHTML = `
+          <td>${log.time}</td>
+          <td>${log.type}</td>
+          <td>${log.recipient}</td>
+          <td><span class="badge ${badgeClass}">${log.status}</span></td>
+        `;
+        logBody.appendChild(row);
+      });
+    }
+
+    function addLogEntry(type, isEmergency = false) {
+      const name = cgNameInput.value.trim() || "Caregiver";
+      const phone = cgPhoneInput.value.trim() || "Registered Contact";
+      const now = new Date().toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
+
+      alertLogs.unshift({
+        time: now,
+        type: type,
+        recipient: `${name} (${phone})`,
+        status: isEmergency ? "SOS DISPATCHED" : "Sent",
+        isEmergency: isEmergency
+      });
+
+      localStorage.setItem("caregiver_logs", JSON.stringify(alertLogs));
+      renderLogs();
+    }
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const caregiverData = {
+        name: cgNameInput.value.trim(),
+        relation: cgRelationInput.value,
+        email: cgEmailInput.value.trim(),
+        phone: cgPhoneInput.value.trim()
+      };
+      localStorage.setItem("medicare_caregiver_info", JSON.stringify(caregiverData));
+      alert("Caregiver contact details updated successfully!");
+    });
+
+    sendTestBtn.addEventListener("click", () => {
+      if (!cgNameInput.value.trim()) {
+        alert("Please enter caregiver details first!");
+        return;
+      }
+      addLogEntry("Test Notification Check", false);
+      alert("Test alert successfully dispatched!");
+    });
+
+    sosBtn.addEventListener("click", () => {
+      const confirmSOS = confirm("Are you sure you want to trigger an Emergency SOS alert to your caregiver?");
+      if (confirmSOS) {
+        addLogEntry("🚨 EMERGENCY SOS SIGNAL", true);
+        alert("Emergency alert sent immediately to your caregiver!");
+      }
+    });
+
+    clearLogBtn.addEventListener("click", () => {
+      alertLogs = [];
+      localStorage.removeItem("caregiver_logs");
+      renderLogs();
+    });
+
+    loadCaregiverInfo();
+    renderLogs();
+  </script>
+</body>
+</html>

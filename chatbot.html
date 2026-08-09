@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediCare+ | AI Assistant</title>
+  <style>
+    :root {
+      --primary: #10b981;
+      --primary-dark: #059669;
+      --bg-slate: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: var(--bg-slate); color: var(--text-main); display: flex; min-height: 100vh; }
+
+    aside { width: 260px; background-color: #0f172a; color: white; padding: 1.5rem 1rem; display: flex; flex-direction: column; gap: 1.5rem; flex-shrink: 0; }
+    aside .brand { font-size: 1.5rem; font-weight: bold; color: var(--primary); }
+    aside nav ul { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+    aside nav a { color: #94a3b8; text-decoration: none; padding: 0.75rem 1rem; border-radius: 0.5rem; display: block; transition: all 0.2s ease; }
+    aside nav a:hover, aside nav a.active { background-color: #1e293b; color: white; font-weight: 600; }
+
+    main { flex: 1; padding: 2rem; overflow-y: auto; display: flex; flex-direction: column; }
+    .header { margin-bottom: 2rem; }
+    .card { background-color: var(--card-bg); border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid var(--border); margin-bottom: 1.5rem; flex: 1; display: flex; flex-direction: column; }
+
+    .chat-box { flex: 1; min-height: 350px; max-height: 500px; overflow-y: auto; border: 1px solid var(--border); border-radius: 0.5rem; padding: 1rem; background-color: #f8fafc; margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
+    .chat-msg { max-width: 80%; padding: 0.65rem 1rem; border-radius: 0.5rem; font-size: 0.95rem; line-height: 1.4; word-wrap: break-word; }
+    .chat-msg.bot { background-color: #e2e8f0; color: var(--text-main); align-self: flex-start; border-bottom-left-radius: 0.1rem; }
+    .chat-msg.user { background-color: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 0.1rem; }
+
+    .btn { background-color: var(--primary); color: white; border: none; padding: 0.65rem 1.2rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer; display: inline-block; font-size: 0.95rem; transition: background-color 0.2s ease; }
+    .btn:hover { background-color: var(--primary-dark); }
+  </style>
+</head>
+<body>
+
+  <aside>
+    <div class="brand">💚 MediCare+</div>
+    <nav>
+      <ul>
+        <li><a href="index.html">Dashboard</a></li>
+        <li><a href="reminders.html">Reminders</a></li>
+        <li><a href="ocr.html">OCR Scanner</a></li>
+        <li><a href="chatbot.html" class="active">AI Assistant</a></li>
+        <li><a href="caregiver.html">Caregiver Alerts</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="header">
+      <h1>AI Healthcare Assistant</h1>
+      <p style="color: var(--text-muted);">Get instant general information about common medications and dosages</p>
+    </div>
+
+    <div class="card">
+      <div class="chat-box" id="chatWindow">
+        <div class="chat-msg bot">Hii! Ask me any question if you have any queries related to your Tablets</div>
+      </div>
+      <div style="display: flex; gap: 0.5rem;">
+        <input type="text" id="chatInput" style="flex:1; padding:0.65rem 0.8rem; border:1px solid var(--border); border-radius:0.375rem; outline:none; font-size:0.95rem;" placeholder="Ask about a medicine name, dosage, or use..." />
+        <button id="sendBtn" class="btn">Send</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const chatWindow = document.getElementById("chatWindow");
+    const chatInput = document.getElementById("chatInput");
+    const sendBtn = document.getElementById("sendBtn");
+
+    const kb = {
+      "dolo": "Dolo (Paracetamol 650mg) is commonly used to treat fever, headache, and body aches. Standard adult dosage: 1 tablet every 4 to 6 hours after food as needed (do not exceed 4000mg/day).",
+      "paracetamol": "Paracetamol (Acetaminophen) treats mild-to-moderate pain and fever. Standard adult dosage: 500mg-1000mg every 4-6 hours (max 4000mg/day).",
+      "acetaminophen": "Acetaminophen (Paracetamol) treats pain and fever. Standard adult dosage: 500mg-1000mg every 4-6 hours (max 4000mg/day).",
+      "ibuprofen": "Ibuprofen is an NSAID used for pain, swelling, and fever. Typical adult dosage: 200mg-400mg every 4-6 hours with meals.",
+      "aspirin": "Aspirin reduces pain and inflammation and acts as a blood thinner. Always take with food to prevent stomach irritation.",
+      "amoxicillin": "Amoxicillin is a penicillin antibiotic. Complete the full course prescribed by your doctor even if you feel better.",
+      "azithromycin": "Azithromycin is a broad-spectrum antibiotic for bacterial infections. Follow exact dosage schedule provided by your physician.",
+      "cetirizine": "Cetirizine is an antihistamine for allergies, sneezing, and runny nose. Typical adult dosage: 10mg once daily.",
+      "loratadine": "Loratadine is a non-drowsy antihistamine for allergy relief. Typical adult dosage: 10mg once daily.",
+      "omeprazole": "Omeprazole decreases stomach acid for acid reflux/GERD. Best taken 30 to 60 minutes before breakfast.",
+      "pantoprazole": "Pantoprazole reduces stomach acid secretion for ulcers and acid reflux. Usually taken once daily before food.",
+      "metformin": "Metformin helps manage blood sugar in Type 2 Diabetes. Always take with or right after meals to minimize stomach upset.",
+      "amlodipine": "Amlodipine lowers high blood pressure and chest pain (angina). Take it at the same time every day.",
+      "losartan": "Losartan is an ARB drug used to lower blood pressure and protect kidney function in diabetic patients.",
+      "atorvastatin": "Atorvastatin lowers cholesterol and reduces risk of heart disease. It is usually taken once daily at bedtime.",
+      "salbutamol": "Salbutamol (Albuterol) is a quick-relief bronchodilator inhaler used to relieve asthma attacks and wheezing.",
+      "albuterol": "Albuterol (Salbutamol) opens airways quickly during acute asthma symptoms or shortness of breath.",
+      "antacid": "Antacids (e.g., Digene, Gelusil) neutralize stomach acid for fast relief from indigestion and heartburn.",
+      "ors": "ORS (Oral Rehydration Salts) replaces lost fluids and key electrolytes during diarrhea, vomiting, or heat dehydration.",
+      "ondansetron": "Ondansetron stops severe nausea and vomiting. Take as prescribed by your medical professional.",
+      "loperamide": "Loperamide treats acute diarrhea by slowing gut movement. Stay well-hydrated while taking it.",
+      "vitamin c": "Vitamin C (Ascorbic Acid) supports immune health and tissue repair. Common daily supplement dose: 500mg-1000mg.",
+      "vitamin d3": "Vitamin D3 helps absorb calcium for bone health and immune regulation. Take as directed by your doctor."
+    };
+
+    function levenshteinDistance(a, b) {
+      const matrix = Array.from({ length: a.length + 1 }, () => Array(b.length + 1).fill(0));
+      for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
+      for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
+
+      for (let i = 1; i <= a.length; i++) {
+        for (let j = 1; j <= b.length; j++) {
+          const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j] + 1,
+            matrix[i][j - 1] + 1,
+            matrix[i - 1][j - 1] + cost
+          );
+        }
+      }
+      return matrix[a.length][b.length];
+    }
+
+    function findNearestMatch(userQuery) {
+      const words = userQuery.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/);
+      let bestKey = null;
+      let minDistance = Infinity;
+
+      for (let key in kb) {
+        for (let word of words) {
+          if (word.length < 3) continue; // Skip short words
+          const distance = levenshteinDistance(word, key);
+          
+          const maxAllowedDistance = Math.max(2, Math.floor(key.length / 3));
+          
+          if (distance <= maxAllowedDistance && distance < minDistance) {
+            minDistance = distance;
+            bestKey = key;
+          }
+        }
+      }
+
+      return { key: bestKey, distance: minDistance };
+    }
+
+    function sendMessage() {
+      const userText = chatInput.value.trim();
+      if (!userText) return;
+
+      appendMsg(userText, "user");
+      chatInput.value = "";
+
+      setTimeout(() => {
+        const textLower = userText.toLowerCase();
+        const cleanText = textLower.replace(/[^a-z0-9\s]/g, '').trim();
+        
+        let reply = "";
+        let directFound = false;
+
+        const greetings = ["hi", "hello", "hey", "hii", "hiii", "hey there", "good morning", "good afternoon", "good evening"];
+        if (greetings.includes(cleanText) || cleanText.startsWith("hi ") || cleanText.startsWith("hello ")) {
+          reply = "Hello! How can I help you with your medications today? Feel free to ask about any tablet, dosage, or use.";
+          directFound = true;
+        }
+
+        const farewells = ["bye", "goodbye", "cya", "see you", "bye bye", "byee", "ta ta"];
+        if (!directFound && (farewells.includes(cleanText) || cleanText.includes("bye"))) {
+          reply = "Goodbye! Take care of your health and feel free to reach out anytime you have medicine queries. 💚";
+          directFound = true;
+        }
+
+        const acknowledgments = ["ok", "okay", "okie", "okiee", "mm", "hmm", "thanks", "thankyou", "k", "thank you"];
+        if (!directFound && acknowledgments.includes(cleanText)) {
+          reply = "Thank you! Feel free to ask if you have any other queries about your medicines. Take care! 💚";
+          directFound = true;
+        }
+
+        if (!directFound) {
+          for (let key in kb) {
+            if (textLower.includes(key)) {
+              reply = kb[key];
+              directFound = true;
+              break;
+            }
+          }
+        }
+
+        if (!directFound) {
+          const fuzzyResult = findNearestMatch(userText);
+          if (fuzzyResult.key) {
+            const formattedName = fuzzyResult.key.charAt(0).toUpperCase() + fuzzyResult.key.slice(1);
+            reply = `Did you mean **${formattedName}**?\n\n${kb[fuzzyResult.key]}`;
+          } else {
+            reply = "I couldn't find a direct or matching medicine for your query. buprofen.Please consult a doctor for personalized medical advice.";
+          }
+        }
+
+        appendMsg(reply, "bot");
+      }, 300);
+    }
+
+    function appendMsg(msg, sender) {
+      const div = document.createElement("div");
+      div.className = `chat-msg ${sender}`;
+      div.innerText = msg;
+      chatWindow.appendChild(div);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    sendBtn.addEventListener("click", sendMessage);
+    chatInput.addEventListener("keypress", (e) => { 
+      if (e.key === "Enter") sendMessage(); 
+    });
+  </script>
+</body>
+</html>

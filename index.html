@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediCare+ | Dashboard</title>
+  <style>
+    :root {
+      --primary: #10b981;
+      --primary-dark: #059669;
+      --bg-slate: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --danger: #ef4444;
+      --danger-dark: #dc2626;
+      --warning: #f59e0b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: var(--bg-slate); color: var(--text-main); display: flex; min-height: 100vh; }
+
+    /* Navigation Sidebar */
+    aside { width: 260px; background-color: #0f172a; color: white; padding: 1.5rem 1rem; display: flex; flex-direction: column; gap: 1.5rem; }
+    aside .brand { font-size: 1.5rem; font-weight: bold; color: var(--primary); }
+    aside nav ul { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+    aside nav a { color: #94a3b8; text-decoration: none; padding: 0.75rem 1rem; border-radius: 0.5rem; display: block; }
+    aside nav a:hover, aside nav a.active { background-color: #1e293b; color: white; }
+
+    /* Main Container */
+    main { flex: 1; padding: 2rem; overflow-y: auto; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+    .card { background-color: var(--card-bg); border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid var(--border); margin-bottom: 1.5rem; }
+
+    /* Emergency SOS Button */
+    .sos-btn { background-color: var(--danger); color: white; border: none; padding: 0.85rem 1.5rem; font-size: 1rem; font-weight: bold; border-radius: 0.5rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); animation: sosPulse 2s infinite; }
+    .sos-btn:hover { background-color: var(--danger-dark); }
+    @keyframes sosPulse {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+      70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+    .escalation-banner { background: #fff1f2; border: 1px solid #fecdd3; border-left: 6px solid var(--danger); padding: 1rem 1.25rem; border-radius: 0.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+    .escalation-title { color: #9f1239; font-weight: bold; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+    .escalation-desc { color: #881337; font-size: 0.88rem; margin-top: 0.25rem; }
+
+    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .metric-card { background: white; padding: 1.25rem; border-radius: 0.75rem; border: 1px solid var(--border); }
+    .metric-card .title { font-size: 0.875rem; color: var(--text-muted); font-weight: 600; }
+    .metric-card .value { font-size: 1.75rem; font-weight: bold; margin-top: 0.25rem; color: var(--text-main); }
+    .dashboard-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
+    @media (max-width: 900px) { .dashboard-layout { grid-template-columns: 1fr; } }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { text-align: left; padding: 0.75rem; border-bottom: 1px solid var(--border); font-size: 0.9rem; vertical-align: middle; }
+    th { color: var(--text-muted); font-weight: 600; background: #f8fafc; }
+    
+    .pill-info { display: flex; align-items: center; gap: 0.5rem; }
+    .pill-icon { width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; color: white; }
+    .pill-yellow { background-color: #f59e0b; }
+    .pill-white { background-color: #cbd5e1; color: #1e293b; border: 1px solid #94a3b8; }
+    .pill-red { background-color: #ef4444; }
+
+    .badge { padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 600; }
+    .badge-success { background-color: #d1fae5; color: #065f46; }
+    .badge-pending { background-color: #fef3c7; color: #92400e; }
+    .badge-danger { background-color: #ffe4e6; color: #9f1239; }
+
+    .btn { padding: 0.4rem 0.75rem; border-radius: 0.375rem; border: none; font-weight: 600; cursor: pointer; font-size: 0.8rem; }
+    .btn-primary { background-color: var(--primary); color: white; }
+    .btn-primary:hover { background-color: var(--primary-dark); }
+    .btn-voice { background-color: #e0f2fe; color: #0369a1; display: inline-flex; align-items: center; gap: 0.3rem; margin-left: 0.5rem; }
+    .btn-voice:hover { background-color: #bae6fd; }
+    .action-btn { display: block; width: 100%; text-align: center; background-color: var(--primary); color: white; text-decoration: none; padding: 0.65rem; border-radius: 0.375rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .action-btn:hover { background-color: var(--primary-dark); }
+
+    .assistant-card { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative; padding: 2rem 1.5rem; min-height: 380px; background: linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%); overflow: hidden; }
+    
+    .speech-bubble { position: relative; background: #ffffff; border: 2px solid var(--primary); border-radius: 12px; padding: 0.85rem 1.1rem; color: var(--text-main); font-size: 0.92rem; font-weight: 600; max-width: 85%; margin-bottom: 2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); transition: opacity 0.2s ease, transform 0.2s ease; z-index: 2; }
+    .speech-bubble::after { content: ''; position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%); border-width: 12px 10px 0; border-style: solid; border-color: var(--primary) transparent; display: block; width: 0; }
+    .speech-bubble::before { content: ''; position: absolute; bottom: -9px; left: 50%; transform: translateX(-50%); border-width: 10px 8px 0; border-style: solid; border-color: #ffffff transparent; display: block; width: 0; z-index: 1; }
+
+    @keyframes gentleFloat {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-14px); }
+      100% { transform: translateY(0px); }
+    }
+
+    @keyframes dynamicShadow {
+      0% { transform: scale(1); opacity: 0.3; }
+      50% { transform: scale(0.65); opacity: 0.1; }
+      100% { transform: scale(1); opacity: 0.3; }
+    }
+    @keyframes activeWave {
+      0% { transform: rotate(0deg); }
+      15% { transform: rotate(-25deg); }
+      30% { transform: rotate(18deg); }
+      45% { transform: rotate(-25deg); }
+      60% { transform: rotate(10deg); }
+      100% { transform: rotate(0deg); }
+    }
+
+    @keyframes clickWiggle {
+      0% { transform: scale(1) rotate(0deg); }
+      25% { transform: scale(1.1) rotate(-8deg); }
+      50% { transform: scale(1.1) rotate(8deg); }
+      75% { transform: scale(1.05) rotate(-4deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+
+    .avatar-container {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .avatar-wrapper {
+      position: relative;
+      width: 130px;
+      height: 130px;
+      cursor: pointer;
+      user-select: none;
+      animation: gentleFloat 3.5s ease-in-out infinite;
+    }
+
+    .avatar-wrapper.wiggle {
+      animation: clickWiggle 0.6s ease-in-out;
+    }
+
+    .doctor-svg {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 8px 16px rgba(16, 185, 129, 0.25));
+      transition: filter 0.3s ease, transform 0.2s ease;
+    }
+
+    .avatar-wrapper:hover .doctor-svg {
+      filter: drop-shadow(0 12px 20px rgba(16, 185, 129, 0.45));
+    }
+
+    .waving-hand {
+      transform-origin: 85px 65px;
+      animation: activeWave 2.5s ease-in-out infinite;
+    }
+
+    .avatar-shadow {
+      width: 80px;
+      height: 12px;
+      background: #0f172a;
+      border-radius: 50%;
+      margin-top: 4px;
+      animation: dynamicShadow 3.5s ease-in-out infinite;
+    }
+
+    .click-hint { font-size: 0.8rem; color: var(--text-muted); margin-top: 1.25rem; font-weight: 600; z-index: 2; }
+
+    .supporter-list { list-style: none; margin-top: 0.75rem; }
+    .supporter-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; background-color: var(--primary); margin-right: 0.3rem; }
+  </style>
+</head>
+<body>
+
+  <aside>
+    <div class="brand">💚 MediCare+</div>
+    <nav>
+      <ul>
+        <li><a href="index.html" class="active">Dashboard</a></li>
+        <li><a href="reminders.html">Reminders</a></li>
+        <li><a href="ocr.html">OCR Scanner</a></li>
+        <li><a href="chatbot.html">AI Assistant</a></li>
+        <li><a href="caregiver.html">Caregiver Alerts</a></li>
+      </ul>
+    </nav>
+  </aside>
+  <main>
+    <div class="header">
+      <div>
+        <h1>Dashboard Overview</h1>
+        <p style="color: var(--text-muted);">Smart Medication Tracker & Caregiver Escalation System</p>
+      </div>
+      <!-- Emergency SOS Alert Button -->
+      <button class="sos-btn" onclick="triggerSOS()">
+        <span>🆘 EMERGENCY SOS</span>
+      </button>
+    </div>
+
+
+    <div class="escalation-banner" id="escalationBanner">
+      <div>
+        <div class="escalation-title">
+          <span>⚠️ Escalation Alert: 07:00 PM Dose Unconfirmed</span>
+        </div>
+        <p class="escalation-desc">
+          Atorvastatin (20mg) was scheduled 30 mins ago. Caregiver <strong>Priya (Daughter)</strong> will be notified in <strong>15 minutes</strong> if unconfirmed.
+        </p>
+      </div>
+      <div style="display: flex; gap: 0.5rem;">
+        <button class="btn btn-primary" onclick="markDoseTaken('Atorvastatin')">Mark as Taken</button>
+        <button class="btn btn-voice" onclick="playVoiceReminder('Atorvastatin 20mg')">🔊 Audio Prompt</button>
+      </div>
+    </div>
+
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="title">Adherence Rate</div>
+        <div class="value" style="color: var(--primary);">94%</div>
+      </div>
+      <div class="metric-card">
+        <div class="title">Scheduled Today</div>
+        <div class="value">4 Doses</div>
+      </div>
+      <div class="metric-card">
+        <div class="title">Completed</div>
+        <div class="value">2 Doses</div>
+      </div>
+      <div class="metric-card">
+        <div class="title">Caregiver Network</div>
+        <div class="value" style="font-size: 1.1rem; color: #059669; padding-top: 0.5rem;">2 Contacts Active</div>
+      </div>
+    </div>
+
+    <div class="dashboard-layout">
+      <div>
+        <div class="card">
+          <h2>Today's Schedule & Pill Guide</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Medication & Visual Guide</th>
+                <th>Dosage</th>
+                <th>Status / Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>08:00 AM</td>
+                <td>
+                  <div class="pill-info">
+                    <span class="pill-icon pill-white">W</span>
+                    <span>Metformin <small style="color: var(--text-muted);">(Round White Pill)</small></span>
+                  </div>
+                </td>
+                <td>500 mg</td>
+                <td><span class="badge badge-success">Taken (08:02 AM)</span></td>
+              </tr>
+              <tr>
+                <td>01:00 PM</td>
+                <td>
+                  <div class="pill-info">
+                    <span class="pill-icon pill-yellow">Y</span>
+                    <span>Vitamin D3 <small style="color: var(--text-muted);">(Oval Yellow Capsule)</small></span>
+                  </div>
+                </td>
+                <td>1000 IU</td>
+                <td><span class="badge badge-success">Taken (01:10 PM)</span></td>
+              </tr>
+              <tr>
+                <td>07:00 PM</td>
+                <td>
+                  <div class="pill-info">
+                    <span class="pill-icon pill-red">R</span>
+                    <span>Atorvastatin <small style="color: var(--text-muted);">(Oval Red Pill)</small></span>
+                  </div>
+                </td>
+                <td>20 mg</td>
+                <td>
+                  <span class="badge badge-danger">Overdue</span>
+                  <button class="btn btn-voice" onclick="playVoiceReminder('Atorvastatin 20 milligram oval red pill')">🔊 Hear</button>
+                </td>
+              </tr>
+              <tr>
+                <td>09:00 PM</td>
+                <td>
+                  <div class="pill-info">
+                    <span class="pill-icon pill-white">W</span>
+                    <span>Paracetamol <small style="color: var(--text-muted);">(Round White Pill)</small></span>
+                  </div>
+                </td>
+                <td>500 mg</td>
+                <td><span class="badge badge-pending">Pending</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card assistant-card">
+          <div class="speech-bubble" id="speechBubble">
+            Hello! 👋 I'm Dr. Alex. Click on me anytime for quick health tips or guidance!
+          </div>
+
+          <div class="avatar-container">
+            <div class="avatar-wrapper" id="doctorAvatar" onclick="speakComment()">
+              <svg class="doctor-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 35 110 L 35 80 Q 35 65 60 65 Q 85 65 85 80 L 85 110 Z" fill="#10b981" />
+                <path d="M 50 65 L 60 85 L 70 65 Z" fill="#ffffff" />
+                <polygon points="58,70 62,70 63,80 60,83 57,80" fill="#059669" />
+                <path d="M 45 68 Q 60 90 75 68" fill="none" stroke="#334155" stroke-width="3" stroke-linecap="round" />
+                <circle cx="60" cy="84" r="4" fill="#94a3b8" />
+                <!-- Head -->
+                <circle cx="60" cy="45" r="22" fill="#fbd5a5" />
+                <path d="M 38 42 Q 60 20 82 42 Q 75 28 60 28 Q 45 28 38 42 Z" fill="#334155" />
+                <circle cx="52" cy="44" r="2.5" fill="#1e293b" />
+                <circle cx="68" cy="44" r="2.5" fill="#1e293b" />
+                <circle cx="52" cy="44" r="6" fill="none" stroke="#0284c7" stroke-width="1.5" />
+                <circle cx="68" cy="44" r="6" fill="none" stroke="#0284c7" stroke-width="1.5" />
+                <line x1="58" y1="44" x2="62" y2="44" stroke="#0284c7" stroke-width="1.5" />
+                <path d="M 53 54 Q 60 60 67 54" fill="none" stroke="#b45309" stroke-width="2" stroke-linecap="round" />
+                <g class="waving-hand">
+                  <path d="M 80 72 Q 95 65 92 48" fill="none" stroke="#10b981" stroke-width="8" stroke-linecap="round" />
+                  <circle cx="92" cy="46" r="6" fill="#fbd5a5" />
+                </g>
+              </svg>
+            </div>
+            <div class="avatar-shadow"></div>
+          </div>
+
+          <div class="click-hint">👇 Click Dr. Alex to hear a health tip</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <h2>Caregiver Network</h2>
+          <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem;">Contacts notified if doses are repeatedly skipped:</p>
+          
+          <ul class="supporter-list">
+            <li class="supporter-item">
+              <div>
+                <strong>Priyadharshini</strong> <small style="color: var(--text-muted);">(Primary - Daughter)</small>
+              </div>
+              <div><span class="status-dot"></span><small style="color: var(--primary-dark); font-weight:600;">SMS/App</small></div>
+            </li>
+            <li class="supporter-item">
+              <div>
+                <strong>Dr. Meena</strong> <small style="color: var(--text-muted);">(Secondary - Physician)</small>
+              </div>
+              <div><span class="status-dot"></span><small style="color: var(--primary-dark); font-weight:600;">Email</small></div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h2>Quick Actions</h2>
+          <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Fast access to primary modules:</p>
+          <a href="ocr.html" class="action-btn">📷 Scan Prescription</a>
+          <a href="reminders.html" class="action-btn" style="background-color: #3b82f6;">⏰ Manage Reminders</a>
+          <a href="chatbot.html" class="action-btn" style="background-color: #6366f1;">🤖 Consult AI Assistant</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    function playVoiceReminder(medName) {
+      if ('speechSynthesis' in window) {
+        const msg = new SpeechSynthesisUtterance(`It is time to take your medication: ${medName}. Please take it with water.`);
+        msg.rate = 0.9;
+        window.speechSynthesis.speak(msg);
+      } else {
+        alert(`Reminder Prompt: It is time to take your ${medName}.`);
+      }
+    }
+
+    function triggerSOS() {
+      const confirmSOS = confirm("⚠️ Send Immediate SOS Emergency Alert to Riya(Primary Caregiver) and dispatch your GPS location?");
+      if (confirmSOS) {
+        alert("🚨 Emergency SOS Dispatched! SMS alerts sent to Priyadharshini and local supporters with your current location.");
+      }
+    }
+
+   
+    function markDoseTaken(medName) {
+      document.getElementById("escalationBanner").style.display = "none";
+      alert(`Success: ${medName} marked as taken. Caregiver escalation canceled.`);
+    }
+
+    const comments = [
+      "Great job! You've taken 2 out of 4 doses today. Keep up the high adherence rate! 🎉",
+      "Don't forget to drink a full glass of water when taking your evening Atorvastatin! 💧",
+      "Pro tip: You can scan prescription bottle labels using the OCR Scanner tab on the left! 📷",
+      "If a dose is missed for over 45 minutes, your primary caregiver Sarah will automatically receive an SMS alert! 🛡️",
+      "Press the red SOS button at any time if you feel unwell to send an urgent notification to your supporters! 🚨"
+    ];
+
+    let currentIdx = 0;
+
+    function speakComment() {
+      const bubble = document.getElementById("speechBubble");
+      const avatar = document.getElementById("doctorAvatar");
+
+      avatar.classList.add("wiggle");
+      setTimeout(() => avatar.classList.remove("wiggle"), 600);
+
+      // Change Speech Text
+      currentIdx = (currentIdx + 1) % comments.length;
+      bubble.style.opacity = "0";
+      bubble.style.transform = "translateY(-5px)";
+
+      setTimeout(() => {
+        bubble.innerText = comments[currentIdx];
+        bubble.style.opacity = "1";
+        bubble.style.transform = "translateY(0)";
+      }, 150);
+    }
+  </script>
+</body>
+</html>
