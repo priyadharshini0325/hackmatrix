@@ -11,6 +11,35 @@ The Problem: Medication non-adherence among elderly and chronically ill patients
 
 The Solution: MediCare+ bridges this gap by digitizing prescriptions via OCR, offering an interactive AI health assistant (Dr. Alex),
               providing automated caregiver alerts for missed doses, and incorporating an instant Emergency SOS safety net.
+
+Technologies Used
+- HTML
+- CSS
+- JavaScript
+- Firebase
+- OCR
+- AI
+
+ How to Run
+1. Clone the repository
+2. Open index.html
+3. Configure Firebase
+4. Run using Live Server
+
+ Future Scope
+Integrate real-time medicine reminders through mobile notifications.
+Enable SMS and WhatsApp alerts for caregivers during emergencies.
+Improve prescription OCR accuracy using advanced AI models.
+Add voice-based medicine reminders for elderly users.
+
+
+Team Members
+Solo Project — Priyadharshini A
+Designed and developed independently, including UI/UX design, frontend development, 
+Firebase integration, AI/OCR features, testing, and project implementation.
+
+
+              
 Key Features
 📷 OCR Prescription Scanner: Instantly scan physical prescriptions to digitize medication schedules and avoid manual entry errors.
 
